@@ -5,9 +5,9 @@ Splittet Sammelbänder bei ungewöhnlich langer Stille (Web-Frontend und Mini-AP
 
 1. stille_splitten installieren (vgl. [hier](https://github.com/hogshead-revival-widow/stille_splitten))
 2. Dieses Reposity hier klonen oder runterladen
-3. cd <Verzeichnis in das entpackt wurde>
+3. cd `<Verzeichnis in das entpackt wurde>`
 4. python -m pip install -e .
-5. `base_path` in `src/init.py` auf <Verzeichnis in das entpackt wurde> anpassen
+5. `base_path` in `src/init.py` auf `<Verzeichnis in das entpackt wurde>` anpassen
 6. python
 7. In die nun geöffnete interaktive Python-Instanz eingeben:
     `from src.models import db
