@@ -1,4 +1,5 @@
 import datetime
+import shutil
 from .init import db
 from .init import LOG_FILE, CLEAN_UP_DB_AFTER, DELETE_LOG_AFTER, DELETE_LOG_IF_BIGGER_THAN
 from .models import Session, File, Result, Sequence
@@ -27,7 +28,7 @@ def clean_up():
                 if isinstance(item, File):
                     path = Path(item.path).parent.parent
                     if path.is_dir() and is_proper_id(path.name):
-                        path.unlink()
+                        shutil.rmtree(path)
                 db.session.delete(item)
         db.session.commit()
 
