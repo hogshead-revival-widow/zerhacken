@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <!-- Meta -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+
+    <!-- Favicon  -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon.png') }}">
+
+    <!-- Titel -->
+    <title>Zerhacken</title>
+
+    <!-- Bootstrap: CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <!-- Dropzone: CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dropzone.min.css') }}">
+</head>
+
+
+
+
+<body>
+
+    <!-- SVG -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol id="export" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+        </symbol>
+        <symbol id="sequenzen" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M2.5 3.5a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm2-2a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1h-7zM0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6v7zm6.258-6.437a.5.5 0 0 1 .507.013l4 2.5a.5.5 0 0 1 0 .848l-4 2.5A.5.5 0 0 1 6 12V7a.5.5 0 0 1 .258-.437z"/>
+        </symbol>
+    </svg>
+
+    <!-- Inhalt -->
+    <main class="container p-3">
+        <section class="row">
+
+            <article class="col-lg-3 col-sm-3">
+
+                <a href="{{ url_for('route_index') }}">
+                    <img src="{{ url_for('static', filename='icon.png') }}" alt="Home" width="80em" height="auto"
+                        class="d-inline-block align-text-top">
+                </a>
+
+
+                <aside id="fortschritt">
+                    <header id="error-msg" style="display: none;">
+                        <h4>Fehler: <span id="status"></span></h4>
+                    </header>
+                    <header id="header-progress">
+                        <h4>Fortschritt</h4>
+                    </header>
+                    <div class="progress" style="margin-bottom: 1em;" id="div-progressbar">
+                        <div id="progressbar" class="progress-bar" role="progressbar" style="width: 0%"
+                            aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </aside>
+
+                <aside class="list-group-numbered list-group" id="steps">
+                    <li class="list-group-item active" id="step-upload">Dateien auswählen.</li>
+                    <li class="list-group-item" id="step-processing">Analysiere Dateien<div id="activity"
+                            class="spinner-border spinner-border-sm text-light float-end fs-4" role="status"
+                            style="display: none; margin-top: 0.11em;"></div>
+                    </li>
+                    <li class="list-group-item" id="step-results">Ergebnisse ansehen!</li>
+                </aside>
+
+
+
+
+                <footer class="mt-3">
+                    <p>
+                        Kontakt: <a href="mailto:idaBotHelp@gmail.com?subject=[Zerhacken]" id="contact-mail">Email</a>
+                    </p>
+                    <details>
+                        <summary>Kolophon</summary>
+                        <p id="kolophon">
+                            V{{consts['Z_VERSION']}} (<a href="https://github.com/hogshead-revival-widow/zerhacken" target="_blank">zerhacken</a>) <br />
+                            V{{consts['S_VERSION']}} (<a
+                                href="https://github.com/hogshead-revival-widow/stille_splitten"
+                                target="_blank">stille_splitten</a>)<br />
+                        </p>
+                    </details>
+                    
+                </footer>
+            </article>
+
+            <section class="col-lg-8 col-sm-7 mt-5">
+                <section id="content">
+
+                    <!-- Upload -->
+                    <article id="upload" style="display: none;">
+                        <form action="{{ url_for('route_file_upload', session_id='') }}" class="dropzone"
+                            id="dropzoneSammelband" method="POST" enctype="multipart/form-data">
+                            <h3 class="dz-message" data-dz-message>Hier Sammelband-Datei(en) hinziehen</h3>
+                            <h4 class="dz-message" data-dz-message>Auch Ordner sind erlaubt.</h4>
+                            <h6 class="dz-message" style="text-align: left;" data-dz-message><span
+                                    class="badge bg-primary" style="font-size: 1rem;">Tipp</span> Wenn Du erwartest,
+                                dass eine Datei z.B.
+                                dreizehn Beiträge haben sollte, dann notiere das im Dateinamen, bevor Du sie
+                                hierhinziehst: Das macht die Analyse flotter &ndash; und die Ergebnisse zuverlässiger.<br /><br />
+                                Etwa so: <span class="badge bg-light text-dark rounded-pill"
+                                    style="font-size: 1rem;">13-Datei.wav</span>
+                                Dem alten Dateinamen stellst Du also eine
+                                Zahl voran und trennst sie mit einem Bindestrich.</h6>
+                        </form>
+
+                        <div class="text-center mt-2" style="display: none;">
+                            <button type="submit" class="btn btn-outline-primary btn-lg"
+                                id="dropzoneSammelbandSubmit">Analyse
+                                starten!</button>
+                        </div>
+                    </article>
+
+                    <!-- In Arbeit -->
+                    <article id="processing" style="display: none;">
+                        <h4>Super!</h4>
+                        <aside class="alert alert-success d-flex align-items-center" role="alert">
+                            <p>Deine Datei(en) werden gerade hochgeladen und analysiert. Sobald es das erste Ergebnis
+                                gibt, erscheint es hier.
+                                <strong>Du musst nichts weiter tun.</strong>
+                            </p>
+                        </aside>
+                    </article>
+
+
+                    <!-- Ergebnisse -->
+                    <article id="results" style="display: none;">
+                        <header class="m-3">
+                            <h4 id="results-header" class="m-3">Ergebnisse</h4>
+
+                            <div class="btn-group m-3" id="results-export-all" style="display: none;">
+                                <a href="{{ url_for('route_download', level='session', export_method='as_excel', level_id='') }}"
+                                    class="btn btn-outline-primary">
+                                    <svg class="bi" width="24" height="24" fill="currentColor" role="img"
+                                        aria-label="Excel-Sammelergebnis exportieren:">
+                                        <use xlink:href="#export" />
+                                    </svg>&nbsp;Excel (alle)</a>
+                                <a href="{{ url_for('route_download', level='session', export_method='as_json', level_id='') }}"
+                                    class="btn btn-outline-primary">
+                                    <svg class="bi" width="24" height="24" fill="currentColor" role="img"
+                                        aria-label="JSON-Sammelergebnis exportieren:">
+                                        <use xlink:href="#export" />
+                                    </svg>&nbsp;JSON (alle)</a>
+                            </div>
+
+                            <div class="m-3">
+
+                                <aside id="results-loading-loader" style="display: block;">
+                                    <em>Suche nach weiteren Sequenzen&hellip;</em>
+                                    <div class="spinner-grow spinner-grow-sm text-primary" role="status">
+                                    </div>
+                                </aside>
+
+                            </div>
+
+
+
+
+                        </header>
+
+                        <section id="results-parent" class="accordion accordion-flush mt-5">
+
+
+                        </section>
+
+                    </article>
+                </section>
+            </section>
+
+
+            <!-- Fehler -->
+            <article id="error" style="display: none;" class="alert alert-danger mt-3" role="alert">
+                <header>
+                    <h4 class="alert-heading">Mist, da ist etwas schiefgelaufen.</h4>
+                    <p>
+                        Leider ist ein Fehler aufgetreten.
+                    </p>
+                    <hr>
+                    <small>
+                        Wenn Du magst, kannst Du <a href="/">hier (Link)</a> einen neuen Versuch starten</a>.
+                    </small>
+                </header>
+
+            </article>
+
+        </section>
+    </main>
+
+
+    <!-- Setup -->
+
+    <script>
+        const fileStatus = {};
+        const fileResults = {};
+
+        // Status: Result
+        const SUCCESS = {{ consts['SUCCESS'] }};
+        const NO_RESULT = {{ consts['NO_RESULT'] }};
+        const UNWEIGHTED_RESULTS = {{ consts['UNWEIGHTED_RESULTS'] }};
+        
+        const MAX_TRIES = {{ consts['MAX_TRIES'] }};
+        const ALLOWED_EXTENSIONS = {{ consts['ALLOWED_EXTENSIONS']|safe }};
+                
+        
+        // Status: File
+        const HAS_RESULT = "{{ consts['HAS_RESULT'] }}";
+        const STILL_PROCESSING = "{{ consts['STILL_PROCESSING'] }}";
+        const NOT_STARTED = "{{ consts['NOT_STARTED'] }}";
+        const ALLOWED_RESULT_STATUS = [HAS_RESULT, STILL_PROCESSING, NOT_STARTED];
+
+        // Einstellungen
+        const DONT_PRELOAD_METADATA_IF_MORE_THAN = 25;
+        const POLL_INTERVAL = 2500;
+        const PROGRESS_START_VALUE = 5;
+
+        const api = {
+            getNewSession: () => {
+                return "{{url_for('route_session_new')}}"
+            },
+            startSearch: (file_id) => {
+                return "{{url_for('route_file_search_start', file_id="")}}" + file_id
+            },
+            getStatusAll: (session_id) => {
+                return "{{url_for('route_session_search_status', session_id="")}}" + session_id
+            },
+            getResult: (file_id) => {
+                return "{{url_for('route_file_search_results', file_id="")}}" + file_id
+            }
+        };
+
+        const urls = {
+                export_file: {
+                    as_excel: "{{url_for('route_download', level='file', level_id='', export_method='as_excel')}}",
+                    as_json: "{{url_for('route_download', level='file', level_id='', export_method='as_json')}}"
+                },
+                audio: "{{url_for('route_audio', file_id='')}}"
+        };
+
+        var showProceedButtonHasBeenTriggered = false;
+        var gotFirstResult = false;
+        var headerCounter = 0;
+
+    </script>
+
+    <!-- Bootstrap: JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>    
+    <!-- Dropzone: JS-->
+    <script src="{{ url_for('static', filename='js/dropzone/dropzone.js') }}"></script>
+    <!-- Zerhacken: JS -->
+    <script src="{{ url_for('static', filename='js/zerhacken/handle_error.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/zerhacken/api_interaction.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/zerhacken/steps.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/zerhacken/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/zerhacken/render_results.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/zerhacken/dropzone_configuration.js') }}"></script>
+
+    <script>
+        showStep(STEPS.upload);
+    </script>
+
+</body>
+
+</html>
