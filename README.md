@@ -7,12 +7,14 @@ Splittet Sammelbänder bei ungewöhnlich langer Stille (Web-Frontend und Mini-AP
 2. Dieses Reposity hier klonen oder runterladen
 3. cd `<Verzeichnis in das entpackt wurde>`
 4. `mkdir db`
-5. python -m pip install -e .
+5. `python -m pip install -e .`
 6. `DIR_BASE` in `src/settings.py` z. B. auf `<Verzeichnis in das entpackt wurde>` anpassen
 7. `python`
 8. In die nun geöffnete interaktive Python-Instanz eingeben:
-    `from src.models import db
-    db.create_all()`
+    ```
+    from src.models import db
+    db.create_all()
+    ```
 
 Mit `python main.py` startet das Programm nun.
 
