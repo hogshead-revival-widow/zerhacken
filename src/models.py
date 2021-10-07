@@ -1,8 +1,12 @@
+import shutil
 from pathlib import Path
+from sqlalchemy import event
 from sqlalchemy.ext.hybrid import hybrid_property
 from openpyxl import Workbook
 from openpyxl.writer.excel import save_virtual_workbook
-from .init import db, ID_LENGTH, UNWEIGHTED_RESULTS, SUCCESS, NO_RESULT, MAX_TRIES
+from .init import db
+from .consts import ID_LENGTH, UNWEIGHTED_RESULTS, SUCCESS, NO_RESULT, MAX_TRIES
+from .settings import DIR_UPLOAD
 from .helper import get_uuid
 
 
@@ -11,7 +15,8 @@ class Session(db.Model):
     id = db.Column(db.String(ID_LENGTH), primary_key=True, default=get_uuid)
     last_access = db.Column(
         db.DateTime(), server_default=db.func.now(), onupdate=db.func.now())
-    files = db.relationship("File", back_populates="session")
+    files = db.relationship(
+        "File", back_populates="session", cascade='all,delete')
 
     @classmethod
     def from_id(cls, session_id):
@@ -101,6 +106,12 @@ class Session(db.Model):
         return status_result, status_processing, status_not_started, total_files, all_done
 
 
+@event.listens_for(Session, 'before_delete')
+def delete_files(mapper, connection, target):
+    if target.files:
+        shutil.rmtree(DIR_UPLOAD / target.id)
+
+
 class File(db.Model):
     __tablename__ = 'file'
     id = db.Column(db.String(ID_LENGTH), primary_key=True, default=get_uuid)
@@ -110,7 +121,8 @@ class File(db.Model):
         db.DateTime(), server_default=db.func.now(), onupdate=db.func.now())
     session_id = db.Column(db.String(ID_LENGTH), db.ForeignKey('session.id'))
     session = db.relationship("Session", back_populates="files", uselist=False)
-    results = db.relationship("Result", back_populates="file")
+    results = db.relationship(
+        "Result", back_populates="file", cascade='all,delete')
     is_unprocessed = db.Column(db.Boolean(), default=True)
 
     def __init__(self, **kwargs):
@@ -195,7 +207,8 @@ class Result(db.Model):
     file_id = db.Column(db.String(ID_LENGTH), db.ForeignKey('file.id'))
     file = db.relationship("File", back_populates='results', uselist=False)
     plausibility = db.Column(db.Integer, nullable=False)
-    sequences = db.relationship("Sequence", back_populates="result")
+    sequences = db.relationship(
+        "Sequence", back_populates="result", cascade='all,delete')
 
     def serialize(self, **kwargs):
         sequences = list()
@@ -264,16 +277,3 @@ class Sequence(db.Model):
 
     def serialize(self, **kwargs):
         return dict(start=self.start, end=self.end, duration=self.duration, position=self.position)
-       
-
-
-
-
-    
-
-    
-
-    
-
-   
-
