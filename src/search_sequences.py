@@ -1,7 +1,8 @@
 import re
 from pathlib import Path
 import stille_splitten.sequences
-from .init import db, NO_RESULT
+from .init import db
+from .consts import NO_RESULT
 from .models import File, Result, Sequence
 
 expectation_pattern=re.compile(r'^([0-9]+)-') 
