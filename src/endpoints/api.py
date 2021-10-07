@@ -3,11 +3,11 @@ from pathlib import Path
 from threading import Thread
 from flask import jsonify, Response, send_from_directory, request
 from ..init import app, db
-from ..init import HAS_RESULT, STILL_PROCESSING, NOT_STARTED
+from ..consts import HAS_RESULT, STILL_PROCESSING, NOT_STARTED
 from ..models import Session, File
 from ..upload import is_uploaded
 from ..search_sequences import search_sequences
-from ..helper import is_proper_id, clean_up
+from ..helper import is_proper_id
 from ..messages import *
 
 
@@ -24,6 +24,7 @@ def route_audio(file_id):
     if not path.is_file:
         return jsonify({'message': msg_not_found}), 404
     return send_from_directory(path.parent, path.name)
+
 
 @ app.route('/download/<string:level>/<string:export_method>/<string:level_id>', methods=['GET', 'POST'])
 def route_download(level, level_id, export_method):
@@ -54,40 +55,39 @@ def route_download(level, level_id, export_method):
                         headers={'Content-Disposition': f'attachment;filename={file_name}.json'})
 
     as_excel = obj.as_excel(**options)
-    return Response(as_excel, headers= {
+    return Response(as_excel, headers={
         'Content-Disposition': f'attachment; filename={file_name}.xlsx',
         'Content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
 
-@ app.route('/api/session/search/status/<string:session_id>', methods = ['POST'])
+
+@ app.route('/api/session/search/status/<string:session_id>', methods=['POST'])
 def route_session_search_status(session_id):
     if not is_proper_id(session_id):
         return jsonify({'message': msg_malformatted}), 400
 
-    session=Session.from_id(session_id)
+    session = Session.from_id(session_id)
 
     if session is None:
         return jsonify({'message': msg_not_found}), 404
 
-    status_result, status_processing, status_not_started, total_files, all_done=session.get_status_all_files()
+    status_result, status_processing, status_not_started, total_files, all_done = session.get_status_all_files()
 
-
-    data={
+    data = {
         HAS_RESULT: status_result,
         STILL_PROCESSING: status_processing,
         NOT_STARTED: status_not_started,
         'total_files': total_files,
         'all_done': all_done
     }
-    if all_done:
-        clean_up(session_id)
     return jsonify({'message': msg_results_success, 'data': data}), 200
 
-@ app.route('/api/file/search/results/<string:file_id>', methods = ['POST'])
+
+@ app.route('/api/file/search/results/<string:file_id>', methods=['POST'])
 def route_file_search_results(file_id):
     if not is_proper_id(file_id):
         return jsonify({'message': msg_malformatted}), 400
 
-    file=File.from_id(file_id)
+    file = File.from_id(file_id)
 
     if file is None:
         return jsonify({'message': msg_not_found}), 404
@@ -95,16 +95,17 @@ def route_file_search_results(file_id):
     if len(file.results) < 1:
         return jsonify({'message': msg_results_none}), 404
 
-    data=file.serialize()
+    data = file.serialize()
     return jsonify({'message': msg_results_success, 'data': data}), 200
 
 # /api/file/search/status/383ABAA9..: data: status: done/started/not_started
-@ app.route('/api/file/search/status/<string:file_id>', methods = ['POST'])
+
+@ app.route('/api/file/search/status/<string:file_id>', methods=['POST'])
 def route_file_search_status(file_id):
     if not is_proper_id(file_id):
         return jsonify({'message': msg_malformatted}), 400
 
-    file=File.from_id(file_id)
+    file = File.from_id(file_id)
 
     if file is None:
         return jsonify({'message': msg_not_found}), 404
@@ -118,12 +119,12 @@ def route_file_search_status(file_id):
 
 
 # /api/file/search/start/383ABAA9..
-@ app.route('/api/file/search/start/<string:file_id>', methods = ['POST'])
+@ app.route('/api/file/search/start/<string:file_id>', methods=['POST'])
 def route_file_search_start(file_id):
     if not is_proper_id(file_id):
         return jsonify({'message': msg_malformatted}), 400
 
-    file=File.from_id(file_id)
+    file = File.from_id(file_id)
 
     if file is None:
         return jsonify({'message': msg_not_found}), 404
@@ -131,11 +132,11 @@ def route_file_search_start(file_id):
     if not file.is_unprocessed:
         return jsonify({'message': msg_analyse_already_started}), 409
 
-    file.is_unprocessed=False
+    file.is_unprocessed = False
     db.session.add(file)
     db.session.commit()
 
-    thread=Thread(target = search_sequences, kwargs = {'file_id': file_id})
+    thread = Thread(target=search_sequences, kwargs={'file_id': file_id})
     thread.start()
 
     return jsonify({'message': msg_analyse_started}), 200
@@ -164,7 +165,6 @@ def route_file_upload(session_id):
         return jsonify({'message': msg_not_implemented}), 501
 
     return jsonify({'message': msg_not_found}), 404
-
 
 
 # /api/session/new
